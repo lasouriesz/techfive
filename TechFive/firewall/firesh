@@ -1,0 +1,406 @@
+#!/bin/bash
+
+resize -s 32 80 > /dev/null
+
+#################cores################
+verm="\033[1;31m"
+verde="\033[1;32m"
+amarelo=`echo "\033[1;33m"`
+azul=`echo "\033[1;34m"`
+branco=`echo "\033[0;37m"`
+NORMAL=`echo "\033[m"`
+ciano=`echo "\033[01;36m"`
+
+ # Declaração de variáveis.
+
+ FIREWALL='/etc/init.d/firewall'
+
+
+ IPTABLES=$(which 'iptables')
+
+ MODPROBE=$(which 'modprobe')
+
+
+
+ start() {
+
+    echo
+    echo "${ciano}###########################################${NORMAL}"
+    echo "${ciano}*                Firewall !               *${NORMAL}"
+    echo "${ciano}###########################################${NORMAL}"
+    echo
+        echo 'Carregando modulos...'
+
+        $MODPROBE 'ip_tables'
+
+        $MODPROBE 'x_tables'
+
+        echo 'Cleaning up firewall...'
+
+
+        iptables -F
+
+        iptables -t nat -F
+
+        iptables -t mangle -F
+
+        iptables -X
+
+        iptables -t nat -X
+
+        iptables -t mangle -X
+
+        iptables -Z
+
+        iptables -t nat -Z
+
+        iptables -t mangle -Z
+
+
+
+        iptables -P INPUT DROP
+
+        iptables -P FORWARD DROP
+
+        iptables -P OUTPUT ACCEPT
+
+        echo "${verde}[OK]->${NORMAL} ${verm}difinindo politicas padrão...${NORMAL}"
+
+
+
+        echo "${verde}[OK]->${NORMAL} ${verm}liberandom o Loopback"
+
+        iptables -A INPUT -i lo -j ACCEPT
+
+
+        iptables -A FORWARD -p tcp --syn -m limit --limit 1/s -j ACCEPT
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção contra DOS"
+
+
+        echo "${verde}[OK]->${NORMAL} ${verm}abilitar comunicação com outras interfaces"
+
+        echo '1' > /proc/sys/net/ipv4/ip_forward
+
+
+        echo "###########>Bloquear pacotes com estado "novo/invalido" que saiam pela placa  de rede (eth0/wlan0/outras)<######"
+	echo "modificar como a sua placa de rede para ter a proteção"
+ 	iptables -A FORWARD -o eth0 -m state --state NEW,INVALID -j DROP
+        iptables -A FORWARD -o wlan0 -m state --state NEW,INVALID -j DROP
+
+
+
+        echo "####>Bloqueando conexão brute force via SSH:<#####"
+
+        iptables -A INPUT -p tcp --dport 2222 --syn -j ACCEPT
+
+        echo "${verde}[OK]->${NORMAL} ${verm}Conexão SSH aceita (fail2ban abilitado)"
+
+
+
+        echo "####>PROTEÇÃO CONTRA ATAQUES<####"
+
+        iptables -A INPUT -m state --state INVALID -j DROP
+
+        echo "${verde}[OK]->${NORMAL} ${verm}bloqueando  attacks..."
+
+
+        echo "####>PROTEGE CONTRA PACOTES QUE PODEM PROCURAR E OBTER INFORMAÇÕES INTERNAS<===="
+
+        iptables -A FORWARD --protocol tcp --tcp-flags ALL SYN,ACK -j DROP
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção Spy-packages ..."
+
+
+        echo "####>BLOQUEANDO TRACEROUTE<####"
+
+        iptables -A INPUT -p udp -s 0/0 -i wlan0 --dport 33435:33525 -j DROP
+
+        echo "${verde}[OK]->${NORMAL} ${verm}bloqueando traceroute..."
+
+
+        echo "####>REGRAS DE SEGURANÇA NA INTERNET<####"
+
+        iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+        iptables -A FORWARD -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+        echo "${verde}[OK]->${NORMAL} ${verm}regras de segurança na internet..."
+
+
+        echo "####>PROTECOES DE KERNEL<####"
+
+	echo 0 > /proc/sys/net/ipv4/conf/all/accept_source_route
+
+        echo 0 > /proc/sys/net/ipv4/conf/all/accept_redirects
+
+        echo 0 > /proc/sys/net/ipv4/conf/all/accept_redirects
+
+        echo 1 > /proc/sys/net/ipv4/icmp_ignore_bogus_error_responses
+
+        echo 0 > /proc/sys/net/ipv4/icmp_echo_ignore_all
+
+        echo 1 > /proc/sys/net/ipv4/tcp_syncookies
+
+        echo 0 > /proc/sys/net/ipv4/conf/all/accept_source_route
+
+        echo 1 > /proc/sys/net/ipv4/conf/all/rp_filter
+
+        echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+        echo 1 > /proc/sys/net/ipv4/conf/all/log_martians
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção para o Kernel"
+
+        #Liberar WebMin
+
+        #iptables -A INPUT -p udp --dport 10000 -j ACCEPT
+
+        #iptables -A INPUT -p tcp --dport 10000 -j ACCEPT
+
+        echo "####>Proteções Adicionais<####"
+
+        iptables -A INPUT -p tcp --dport 5900 -j DROP
+
+        iptables -A INPUT -p tcp --dport 53 -j DROP
+
+
+		#se voce estiver usando um proxy na rede , altere e descomente
+        #echo 'OK -> Definido redirecionamento de proxy transparente'
+
+        #iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 80 -j REDIRECT --to-port 3128
+
+
+
+        echo "####>Proteção contra ping da morte<####"
+
+        # -------------------------------------------------------
+
+        iptables -A FORWARD -p icmp --icmp-type echo-request -m limit --limit 1/s -j ACCEPT
+
+
+
+        echo "####>Proteção contra trinoo<####"
+
+        # -------------------------------------------------------
+
+        iptables -N TRINOO
+
+        iptables -A TRINOO -m limit --limit 15/m -j LOG --log-level 6 --log-prefix "FIREWALL: trinoo: "
+
+        iptables -A TRINOO -j DROP
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 27444 -j TRINOO
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 27665 -j TRINOO
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 31335 -j TRINOO
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 34555 -j TRINOO
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 35555 -j TRINOO
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção Trinoo"
+
+
+        echo "####> Proteção contra trojans<####"
+
+        # -------------------------------------------------------
+
+        iptables -N TROJAN
+
+        iptables -A TROJAN -m limit --limit 15/m -j LOG --log-level 6 --log-prefix "FIREWALL: trojan: "
+
+        iptables -A TROJAN -j DROP
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 666 -j TROJAN
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 4000 -j TROJAN
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 6000 -j TROJAN
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 6006 -j TROJAN
+
+        iptables -A INPUT -p TCP -i wlan0 --dport 16660 -j TROJAN
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção contra Trojan"
+
+
+        echo "####>Proteção contra worms<####"
+
+        # -------------------------------------------------------
+
+        iptables -A FORWARD -p tcp --dport 135 -i wlan0 -j REJECT
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção contra Worm"
+
+
+        echo "####>Proteção contra port scanners<####"
+
+        # -------------------------------------------------------
+
+        iptables -N SCANNER
+
+        iptables -A SCANNER -m limit --limit 15/m -j LOG --log-level 6 --log-prefix "FIREWALL: port scanner: "
+
+        iptables -A SCANNER -j DROP
+
+        iptables -A INPUT -p tcp --tcp-flags ALL FIN,URG,PSH -i wlan0 -j SCANNER
+
+        iptables -A INPUT -p tcp --tcp-flags ALL NONE -i wlan0 -j SCANNER
+
+        iptables -A INPUT -p tcp --tcp-flags ALL ALL -i wlan0 -j SCANNER
+
+        iptables -A INPUT -p tcp --tcp-flags ALL FIN,SYN -i wlan0 -j SCANNER
+
+        iptables -A INPUT -p tcp --tcp-flags ALL SYN,RST,ACK,FIN,URG -i wlan0 -j SCANNER
+
+        iptables -A INPUT -p tcp --tcp-flags SYN,RST SYN,RST -i wlan0 -j SCANNER
+
+        iptables -A INPUT -p tcp --tcp-flags SYN,FIN SYN,FIN -i wlan0 -j SCANNER
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção contra Port Scanner"
+
+
+        echo "####>BLOQUEANDO PORT SCANNERS OCULTOS<####"
+
+        iptables -A FORWARD -p tcp --tcp-flags SYN,ACK,FIN,RST RST -m limit --limit 1/s -j ACCEPT
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção contra porte scanner oculto"
+
+
+        echo "####>BackOrifice<####"
+
+        iptables -A INPUT -p tcp -m tcp --dport 31337 -j DROP
+
+        iptables -A INPUT -p udp -m udp --dport 31337 -j DROP
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção BackOrifice"
+
+
+        echo "####>NetBus<####"
+
+        iptables -A INPUT -p tcp -m tcp --dport 12345:12346 -j DROP
+
+        iptables -A INPUT -p udp -m udp --dport 12345:12346 -j DROP
+
+        echo "${verde}[OK]->${NORMAL} ${verm}proteção NetBus"
+
+
+        echo "####>Ativa mascaramento de saída<####"
+
+        # -------------------------------------------------------
+
+        iptables -A POSTROUTING -t nat -o wlan0 -j MASQUERADE
+
+        echo "${verde}[OK]->${NORMAL} ${verm}mascarando Packages de saida "
+
+
+
+        echo
+
+        mkdir -p /var/lock/subsys/
+
+        touch /var/lock/subsys/iptables
+
+        echo "${verde}[OK]->${NORMAL} ${verm}Mudou as políticas de destino para DROP"
+
+          iptables -P INPUT DROP && \
+
+          iptables -P FORWARD DROP && \
+
+          iptables -P OUTPUT DROP && \
+
+        echo
+
+        echo "${verde}[OK]->${NORMAL} ${verm}limpando todas as  chains"
+
+          iptables -F INPUT && iptables -F FORWARD && iptables -F OUTPUT
+
+        echo "${verde}[OK]->${NORMAL} ${verm}removendo todas as chains do user"
+
+          iptables -X
+
+
+      }
+
+
+   stop() {
+
+        echo "parando o firewall!"
+
+        echo "${verde}[OK]->${NORMAL} ${verm}Limpando todas as  chains"
+
+        iptables -F
+
+        iptables -t nat -F
+
+        iptables -t mangle -F
+
+        echo "${verde}[OK]->${NORMAL} ${verm}removendo as chains do user "
+
+        iptables -X
+
+        iptables -t nat -X
+
+        iptables -t mangle -X
+
+        iptables -Z
+
+        iptables -t nat -Z
+
+        iptables -t mangle -Z
+
+        iptables -P INPUT ACCEPT
+
+        iptables -P FORWARD ACCEPT
+
+        iptables -P OUTPUT ACCEPT
+
+        echo "${verde}[OK]->${NORMAL} ${verm}Cadeias internas redefinidas para a diretiva ACCEPT padrão"
+        echo ""
+        echo "${verde}Firewall Desligado.${NORMAL}"
+
+        echo
+
+        rm -f /var/lock/subsys/iptables
+
+  }
+
+
+  case "$1" in
+
+  start)
+
+  start
+
+  ;;
+
+
+  stop)
+
+  stop
+
+  ;;
+
+
+  status)
+
+  iptables --list
+
+  ;;
+
+
+  *)
+     echo
+     echo "*======================================================*"
+     echo "|                start - stop - status                 |"
+     echo "*======================================================*"
+     echo "Salve HAE."
+     echo "Ex: sudo firewall.sh start,stop ou status"
+  ;;
+
+
+ esac
+
+ exit 0

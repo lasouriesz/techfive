@@ -1,0 +1,22 @@
+#!/bin/bash
+echo '+==================+'
+echo '| [1] Crypt        |'
+echo '| [2] Decrypt      |'
+echo '| [3] Sair         |'
+echo '+==================+'
+echo 'Digite uma opção:'
+read i
+if [[ $i = 1 ]]; then
+	sha1
+elif [[ $i = 2 ]]; then
+	echo 'Em falta!'
+elif [[ $i = 3 ]]; then
+echo 'Obrigado por utilizar nosso framework'
+fi
+sha1(){
+	echo
+	echo "Digite algo a ser criptografado:"
+	echo
+	read i
+	echo "Retorno: `echo $i | sha1sum`"
+}

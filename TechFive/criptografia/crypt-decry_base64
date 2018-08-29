@@ -1,0 +1,33 @@
+#!/bin/bash
+clear
+echo "  __________  _____  ________ _____   ____"
+echo " / ___/ _ \ \/ / _ \/_  __/ // / _ | / __/"
+echo "/ /__/ , _/\  / ___/ / / / _  / __ |/ _/  "
+echo "\___/_/|_| /_/_/    /_/ /_//_/_/ |_/___/  "
+echo
+base(){
+	echo
+echo "[1]Decrypt"
+echo "[2]Encrypt"
+echo "[3]Sair"
+echo
+echo "Digite uma opcao:"
+read a
+if [ $a = "1" ]
+then
+	echo "Cole a hash base64:"
+	read HASH
+  echo
+	echo "Retorno: `echo $HASH |base64 -d`"
+elif [ $a = "2" ]
+then
+	echo "Digite algo:"
+	read ALGO
+  echo
+	echo "Retorno: `echo $ALGO | base64`"
+elif [ $a = "3" ]
+then
+        echo "Obrigado por usar nosso framework!"
+        exit
+fi
+}

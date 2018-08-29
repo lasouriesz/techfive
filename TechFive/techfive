@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# Variáveis com as cores
+vermB=`echo "\033[1;31m"` #Vermelho
+verdB=`echo "\033[1;32m"` #Verde
+amarB=`echo "\033[1;33m"` #Amarelo
+azulB=`echo "\033[1;34m"` #Azul
+branB=`echo "\033[1;37m"` #Branco
+cianB=`echo "\033[1;36m"` # Ciano
+nml=`echo "\033[m"` #Sem cor
+
+# Variáveis com as cores sem bold
+verm=`echo "\033[0;31m"` #Vermelho
+verd=`echo "\033[0;32m"` #Verde
+amar=`echo "\033[0;33m"` #Amarelo
+azul=`echo "\033[0;34m"` #Azul
+bran=`echo "\033[0;37m"` #Branco
+cian=`echo "\033[0;36m"` # Ciano
+
+clear
+
+##Desabilitado - PS1 padrão do script
+#cust(){
+#	echo -ne "${cianB}#${bran}>${nml}"
+#}
+
+#Função na qual enumera e lista os arquivos de uma pasta
+show() {
+	lista=`ls | pr -Tn | sed 's/ //g'`
+	echo -e ${cian}$lista${nml}
+}
+
+#Função que mostra o prompt personalizado do script
+prompt() {
+	echo -e "${vermB}┌─${nml}${bran}[${nml}${amarB}techfire${nml}${cianB}@${nml}${amarB}framework${nml}${bran}]${nml}"
+	echo -ne "${vermB}└──╼${nml}${cianB} #${bran}"
+}
+
+echo -e " ${amarB} ______    ___    __  __ __  _____  ____  __ __    ___ ${nml}"
+echo -e " ${amarB}|      |  /  _]  /  ]|  |  ||     ||    ||  |  |  /  _]${nml}"
+echo -e " ${amarB}|      | /  [_  /  / |  |  ||   __| |  | |  |  | /  [_ ${nml}"
+echo -e " ${amarB}|_|  |_||    _]/  /  |  _  ||  |_   |  | |  |  ||    _]${nml}"
+echo -e " ${amarB}  |  |  |   [_/   \_ |  |  ||   _]  |  | |  :  ||   [_ ${nml}"
+echo -e " ${amarB}  |  |  |     \     ||  |  ||  |    |  |  \   / |     |${nml}"
+echo -e " ${amarB}  |__|  |_____|\____||__|__||__|   |____|  \_/  |_____|${nml}"
+
+echo
+echo -e "${amarB}+========================================+"
+echo -e "${amarB}+${nml}                                        ${amarB}+${nml}"
+echo -e "${amarB}+${nml} ${vermB}1)Criptografia${nml}                         ${amarB}+${nml}"
+echo -e "${amarB}+${nml}                                        ${amarB}+${nml}"
+echo -e "${amarB}+${nml} ${vermB}2)Firewall ${nml}                            ${amarB}+${nml}"
+echo -e "${amarB}+${nml}                                        ${amarB}+${nml}"
+echo -e "${amarB}+${nml} ${vermB}3)Exploits ${nml}                            ${amarB}+${nml}"
+echo -e "${amarB}+${nml}                                        ${amarB}+${nml}"
+echo -e "${amarB}+${nml} ${vermB}4)Destruição ${nml}                          ${amarB}+${nml}"
+echo -e "${amarB}+${nml}                                        ${amarB}+${nml}"
+echo -e "${amarB}+${nml} ${vermB}H)help ${nml}                                ${amarB}+${nml}"
+echo -e "${amarB}+========================================+"
+prompt
+Criptografia(){
+  reset
+  cd criptografia/
+  echo -e "${bran}[${nml} ${cianB}Lista de script de criptografia${nml} ${bran}]${nml}"
+  echo && show && echo
+  prompt
+  read i
+	chmod +x $i
+	sudo sh $i
+}
+Firewall(){
+	reset
+  cd firewall/
+  echo -e "${bran}[${nml} ${cianB}Lista de script de Firewall${nml} ${bran}]${nml}"
+  echo && show && echo
+  prompt
+  read i
+  chmod +x $i
+	sleep 1s && sudo sh $i
+}
+Exploits(){
+	reset
+	cd exploits/
+	echo -e "${bran}[${nml} ${cianB}Lista de exploits${nml} ${bran}]${nml}"
+	echo && show && echo
+	prompt
+	read i
+	chmod +x $i
+	sleep 1s && sudo sh $i
+}
+Destruicao(){
+	reset
+	cd destruicao/
+	echo -e "${bran}[${nml} ${cianB}Lista de vírus destrutivos${nml} ${bran}]${nml}"
+	echo && show && echo
+	echo "Selecione um vírus: " && read i
+	echo "Indique o local do seu pc onde deseja salvar este virús: "
+	read e && cp $i $e
+}
+help(){
+	reset
+	echo -e "${amarB}+===============================================================+${nml}"
+	echo -e "${amarB}|${nml}            ${vermB}HELP - TECHFIVE${nml}                                    ${amarB}|${nml}"
+	echo -e "${amarB}+===============================================================+${nml}"
+	echo -e "${amarB}|${nml}                                                               ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}${vermB}search - Busca um script${nml}                                       ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}${vermB}exec - Executa um script${nml}                                       ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}${vermB}set - Seta uma configuracao${nml}                                    ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}${vermB}show - Mostra o diretorio atual${nml}                                ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}${vermB}fec - Mata o processo${nml}                                          ${amarB}|${nml}"
+	echo  -e "${amarB}|${nml}                                                               ${amarB}|${nml}"
+	echo -e "${amarB}+===============================================================+${nml}"
+	echo -e "${amarB}|${nml}          ${vermB}SOBRE O TECHFIVE${nml}                                     ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}                                                               ${amarB}|${nml}"
+	echo -e "${amarB}|${nml} ${vermB}O TechFive e um Projeto construido por dois amigos.${nml}               ${amarB}|${nml}"
+	echo -e "${amarB}|${nml} ${vermB}projeto que beneficia profissionais e estudantes de seguranca ${nml}${amarB}|${nml} "
+	echo -e "${amarB}|${nml} ${vermB}da informacao.${nml}                                                ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}                                                               ${amarB}|${nml}"
+	echo -e "${amarB}+===============================================================+${nml}"
+	echo -e "${amarB}|${nml}            ${vermB}CRIADORES${nml}                                          ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}                                                               ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}${vermB}Thiago Vinicius (Esponnja)${nml}                                     ${amarB}|${nml}"
+	echo -e "${amarB}|${nml}${vermB}Matheus Santana (Hae Brasil)${nml}                                   ${amarB}|${nml}"
+	echo -e "${amarB}+===============================================================+${nml}"
+}
+alias exec=sh
+alias fec=exit
+read i
+case $i in
+  1) Criptografia;;
+  2) Firewall;;
+  3) Exploits;;
+  4) Destruicao;;
+	h | H)help;;
+  *) reset;
+	   exit;
+esac
